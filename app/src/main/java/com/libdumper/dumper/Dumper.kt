@@ -1,25 +1,29 @@
 package com.libdumper.dumper
 
+import android.util.Log
 import com.libdumper.Utils.longToHex
 import com.libdumper.fixer.Fixer
 import java.io.*
 import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import java.util.ArrayList
+import java.util.regex.Pattern
 
 /*
    An Modified Tools.kt from "https://github.com/BryanGIG/KMrite"
 */
 
-class Dumper(private val nativeDir: String, pkg: String, private val file: String) {
+class Dumper(private val nativeDir: String, pkg: String, private val file: String="") {
     private val mem = Memory(pkg)
-
+    private var allmaplist = ArrayList<Process>()
     fun dumpFile(autoFix: Boolean): String {
         var log = ""
         try {
             getProcessID()
             log += "PID : ${mem.pid}\n"
             parseMap()
+
             mem.size = mem.eAddress - mem.sAddress
             log += "Start Address : ${mem.sAddress.longToHex()}\n"
             log += "End Address : ${mem.eAddress.longToHex()}\n"
@@ -50,10 +54,81 @@ class Dumper(private val nativeDir: String, pkg: String, private val file: Strin
         return log
     }
 
+    fun getProcessname(originname:String):String?{
+        var firstindex=originname.indexOf("/")
+        var lastindex=originname.lastIndexOf("/")
+        if(firstindex>0) {
+            var name = originname.substring(lastindex + 1, originname.length)
+            return name
+        }
+        return null
+    }
+    fun getProcesspath(originname:String):String?{
+        var firstindex=originname.indexOf("/")
+        var lastindex=originname.lastIndexOf("/")
+        if(firstindex>0) {
+            var path = originname.substring(firstindex + 1, originname.length)
+            return path
+        }
+        return null
+    }
+
+    fun getAllProcesses():ArrayList<Process> {
+        try{
+            getProcessID()
+            val files = File("/proc/${mem.pid}/maps")
+            if (files.exists()) {
+                var lines = files.readLines(Charset.defaultCharset())
+                lines.forEach {
+                    var processname=getProcessname(it)
+                    if (processname!=null&&allmaplist.filter {
+                            it.processname!!.contains(processname)
+                        }.size==0) {
+                        var process = Process()
+                        process.processname = processname
+                        val startAddr = lines.find { line ->
+                            line.contains(processname)
+                        }
+                        val endAddr = lines.findLast { line ->
+                            line.contains(processname)
+                        }
+                        val regex = "\\p{XDigit}+-\\p{XDigit}+".toRegex()
+                        if (startAddr == null || endAddr == null) {
+                            throw FileNotFoundException("$file not found in ${files.path}")
+                        } else {
+                            startAddr.let { unused ->
+                                regex.find(unused)?.value.let {
+                                    if (it != null) {
+                                        val result = it.split("-")
+                                        process.sAddress = result[0].toLong(16)
+                                    }
+                                }
+                            }
+                            endAddr.let { unused ->
+                                regex.find(unused)?.value.let {
+                                    if (it != null) {
+                                        val result = it.split("-")
+                                        process.eAddress = result[1].toLong(16)
+                                    }
+                                }
+                            }
+                        }
+                        allmaplist.add(process)
+                    }
+                }
+            }
+        }
+        catch (e:Exception){
+        }
+        return allmaplist
+    }
+
     private fun parseMap() {
         val files = File("/proc/${mem.pid}/maps")
         if (files.exists()) {
             val lines = files.readLines(Charset.defaultCharset())
+            lines.forEach {
+            }
             val startAddr = lines.find { it.contains(file) }
             val endAddr = lines.findLast { it.contains(file) }
             val regex = "\\p{XDigit}+-\\p{XDigit}+".toRegex()

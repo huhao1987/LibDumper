@@ -10,4 +10,8 @@
     <string name="custom_end_address">Custom End Address</string>
     <string name="dump">DUMP</string>
     <string name="fix_elf_dump">Auto Fix Dump</string>
+    <string name="select_to_dump">Select to Dump</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>

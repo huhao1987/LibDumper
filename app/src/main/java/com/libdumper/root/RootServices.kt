@@ -26,6 +26,14 @@ class RootServices : RootService(), Handler.Callback {
         val pkg = msg.data.getString("pkg")
         val file = msg.data.getString("file_dump")
         if (nativeDir != null && pkg != null && file != null) {
+            if(file.equals("isfolder"))
+            {
+                var allprocesslist=Dumper(nativeDir,pkg, file).getAllProcesses()
+                sendBroadcast(Intent("com.libdumper.getallprocess").also {
+                    it.putExtra("allprocesses",allprocesslist)
+                })
+            }
+            else
             data.putString("result", Dumper(nativeDir,pkg, file).dumpFile(fixMe))
         } else {
             data.putString("result", "Invalid Data!!")

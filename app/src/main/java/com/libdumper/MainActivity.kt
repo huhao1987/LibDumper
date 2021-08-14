@@ -2,10 +2,8 @@ package com.libdumper
 
 import android.Manifest
 import android.app.Activity
-import android.content.ComponentName
-import android.content.Intent
+import android.content.*
 import android.content.Intent.ACTION_VIEW
-import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.*
@@ -14,6 +12,7 @@ import android.widget.ScrollView
 import com.libdumper.Utils.TAG
 import com.libdumper.databinding.ActivityMainBinding
 import com.libdumper.dumper.Dumper
+import com.libdumper.dumper.Process
 import com.libdumper.root.RootServices
 import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.Shell
@@ -27,6 +26,8 @@ class MainActivity : Activity(), Handler.Callback {
     private var conn: MSGConnection? = null
     private var nativeDir = ""
     private var needFix: Boolean = false
+
+    private var processesBroadcastReceiver:BroadcastReceiver?=null
     private fun initRoot() {
         if (Shell.rootAccess()) {
             if (remoteMessenger == null) {
@@ -63,6 +64,9 @@ class MainActivity : Activity(), Handler.Callback {
                     consoleList.add("put pkg name!")
                 }
             }
+            selecttodump.setOnClickListener {
+                runNativeFiles()
+            }
             github.setOnClickListener {
                 startActivity(
                     Intent(
@@ -72,6 +76,31 @@ class MainActivity : Activity(), Handler.Callback {
                 )
             }
         }
+        if(processesBroadcastReceiver==null) {
+            processesBroadcastReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    when (intent?.action) {
+                        "com.libdumper.getallprocess" -> {
+                            var processFragment=ProcessFragment.newInstance(intent.getParcelableArrayListExtra<Process>("allprocesses")!!)
+                                .also {
+                                    it.setProcessListener(object:onProcessListener{
+                                        override fun onSelect(process: Process, position: Int) {
+                                            process.processname?.apply {
+                                                runNative(this)
+                                            }
+                                        }
+
+                                    })
+                                }
+                                processFragment.show(fragmentManager,"process")
+                        }
+                    }
+                }
+            }
+            var intentfilter = IntentFilter()
+            intentfilter.addAction("com.libdumper.getallprocess")
+            registerReceiver(processesBroadcastReceiver, intentfilter)
+        }
     }
 
 
@@ -79,6 +108,25 @@ class MainActivity : Activity(), Handler.Callback {
         val dump = msg.data.getString("result")
         consoleList.add(dump)
         return false
+    }
+    private fun runNativeFiles(file: String="isfolder") {
+        val pkg = bind.pkg.text.toString()
+        if (Shell.rootAccess()) {
+            sendRequest(pkg, file)
+        } else {
+            var processFragment=ProcessFragment.newInstance(intent.getParcelableArrayListExtra<Process>("allprocesses")!!)
+                .also {
+                    it.setProcessListener(object:onProcessListener{
+                        override fun onSelect(process: Process, position: Int) {
+                            process.processname?.apply {
+                                runNative(this)
+                            }
+                        }
+
+                    })
+                }
+            processFragment.show(fragmentManager,"process")
+        }
     }
 
     private fun runNative(file: String) {
@@ -121,9 +169,11 @@ class MainActivity : Activity(), Handler.Callback {
 
     private var consoleList = object : CallbackList<String?>() {
         override fun onAddElement(s: String?) {
-            bind.console.append(s)
-            bind.console.append("\n")
-            bind.sv.postDelayed({ bind.sv.fullScroll(ScrollView.FOCUS_DOWN) }, 10)
+            s?.apply {
+                bind.console.append(s)
+                bind.console.append("\n")
+                bind.sv.postDelayed({ bind.sv.fullScroll(ScrollView.FOCUS_DOWN) }, 10)
+            }
         }
     }
 
@@ -132,5 +182,6 @@ class MainActivity : Activity(), Handler.Callback {
         conn?.let {
             RootService.unbind(it)
         }
+        if(processesBroadcastReceiver!=null)unregisterReceiver(processesBroadcastReceiver)
     }
 }
