@@ -1,18 +1,21 @@
-package com.libdumper
+package com.libdumper.process
 
-import android.app.AlertDialog
 import android.app.DialogFragment
 import android.os.Bundle
 import android.view.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.libdumper.dumper.Process
+import com.libdumper.R
 import java.util.*
 
 
+/**
+ * @author Hao
+ * A dialog fragment for display the processes of the selected app
+ */
 class ProcessFragment: DialogFragment() {
-    private var processlist:ArrayList<Process> ? = null
-    private var onProcessListener:onProcessListener?=null
+    private var processlist:ArrayList<ProcessDetail> ? = null
+    private var onProcessListener: onProcessListener?=null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,9 +43,9 @@ class ProcessFragment: DialogFragment() {
             var llm = LinearLayoutManager(activity)
             llm!!.orientation = RecyclerView.VERTICAL
             processlistview?.layoutManager = llm
-            var processAdapter=ProcessAdapter(activity,this).also {
-                it.setProcessListener(object:onProcessListener{
-                    override fun onSelect(process: Process, position: Int) {
+            var processAdapter= ProcessAdapter(activity,this).also {
+                it.setProcessListener(object: onProcessListener {
+                    override fun onSelect(process: ProcessDetail, position: Int) {
                         onProcessListener?.onSelect(process,position)
                         this@ProcessFragment.dismiss()
                     }
@@ -61,7 +64,7 @@ class ProcessFragment: DialogFragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance(processlist:ArrayList<Process>) =
+        fun newInstance(processlist:ArrayList<ProcessDetail>) =
             ProcessFragment().apply {
                 arguments = Bundle().apply {
                     putParcelableArrayList("processlist", processlist)
@@ -70,6 +73,6 @@ class ProcessFragment: DialogFragment() {
     }
 }
 interface onProcessListener{
-    fun onSelect(process: Process,position:Int)
+    fun onSelect(process: ProcessDetail, position:Int)
 }
 

@@ -45,6 +45,11 @@
             android:autofillHints="@string/package_name"
             android:hint="@string/package_name"
             android:inputType="text" />
+        <Button
+            android:id="@+id/selectapp"
+            android:text="@string/select_app"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <LinearLayout

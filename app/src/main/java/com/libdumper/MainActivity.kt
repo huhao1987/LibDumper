@@ -1,22 +1,28 @@
 package com.libdumper
 
-import android.Manifest
 import android.app.Activity
 import android.content.*
 import android.content.Intent.ACTION_VIEW
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.*
 import android.util.Log
 import android.widget.ScrollView
 import com.libdumper.Utils.TAG
+import com.libdumper.app.AppDetail
+import com.libdumper.app.AppUtils
+import com.libdumper.app.ApplistFragment
+import com.libdumper.app.onAppListener
 import com.libdumper.databinding.ActivityMainBinding
 import com.libdumper.dumper.Dumper
-import com.libdumper.dumper.Process
+import com.libdumper.process.ProcessDetail
+import com.libdumper.process.ProcessFragment
+import com.libdumper.process.onProcessListener
 import com.libdumper.root.RootServices
 import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.Shell
 import com.topjohnwu.superuser.ipc.RootService
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MainActivity : Activity(), Handler.Callback {
     lateinit var bind: ActivityMainBinding
@@ -49,7 +55,7 @@ class MainActivity : Activity(), Handler.Callback {
         with(bind) {
             setContentView(root)
             beginDump.setOnClickListener {
-                if (pkg.text != null) {
+                if (pkg.text.toString().isNotBlank()) {
                     if (metadata.isChecked)
                         runNative("global-metadata.dat")
 
@@ -65,7 +71,10 @@ class MainActivity : Activity(), Handler.Callback {
                 }
             }
             selecttodump.setOnClickListener {
+                if(pkg.text.toString().isNotBlank())
                 runNativeFiles()
+                else
+                    consoleList.add("put pkg name!")
             }
             github.setOnClickListener {
                 startActivity(
@@ -75,16 +84,32 @@ class MainActivity : Activity(), Handler.Callback {
                     )
                 )
             }
+            selectapp.setOnClickListener {
+                GlobalScope.launch {
+                    var applistFragment= ApplistFragment.newInstance(AppUtils.getActiveApps(this@MainActivity))
+                        .also {
+                            it.setProcessListener(object: onAppListener {
+                                override fun onSelect(process: AppDetail, position: Int) {
+                                    process.packagename?.apply {
+                                        pkg.setText(this)
+                                    }
+                                }
+
+                            })
+                        }
+                    applistFragment.show(fragmentManager,"process")
+                }
+            }
         }
         if(processesBroadcastReceiver==null) {
             processesBroadcastReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
                     when (intent?.action) {
                         "com.libdumper.getallprocess" -> {
-                            var processFragment=ProcessFragment.newInstance(intent.getParcelableArrayListExtra<Process>("allprocesses")!!)
+                            var processFragment= ProcessFragment.newInstance(intent.getParcelableArrayListExtra<ProcessDetail>("allprocesses")!!)
                                 .also {
-                                    it.setProcessListener(object:onProcessListener{
-                                        override fun onSelect(process: Process, position: Int) {
+                                    it.setProcessListener(object: onProcessListener {
+                                        override fun onSelect(process: ProcessDetail, position: Int) {
                                             process.processname?.apply {
                                                 runNative(this)
                                             }
@@ -114,10 +139,10 @@ class MainActivity : Activity(), Handler.Callback {
         if (Shell.rootAccess()) {
             sendRequest(pkg, file)
         } else {
-            var processFragment=ProcessFragment.newInstance(intent.getParcelableArrayListExtra<Process>("allprocesses")!!)
+            var processFragment= ProcessFragment.newInstance(intent.getParcelableArrayListExtra<ProcessDetail>("allprocesses")!!)
                 .also {
-                    it.setProcessListener(object:onProcessListener{
-                        override fun onSelect(process: Process, position: Int) {
+                    it.setProcessListener(object: onProcessListener {
+                        override fun onSelect(process: ProcessDetail, position: Int) {
                             process.processname?.apply {
                                 runNative(this)
                             }

@@ -1,16 +1,19 @@
-package com.libdumper
+package com.libdumper.process
 
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Adapter
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.libdumper.dumper.Process
+import com.libdumper.R
 
-class ProcessAdapter(var context: Context, var processlist:ArrayList<Process>) :RecyclerView.Adapter<ProcessAdapter.ProcessHolder>(){
-    private var onProcessListener:onProcessListener?=null
+/**
+ * @author
+ * The adapter of processes from the selected app
+ */
+class ProcessAdapter(var context: Context, var processlist:ArrayList<ProcessDetail>) :RecyclerView.Adapter<ProcessAdapter.ProcessHolder>(){
+    private var onProcessListener: onProcessListener?=null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProcessHolder {
 
