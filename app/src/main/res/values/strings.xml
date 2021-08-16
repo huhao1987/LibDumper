@@ -12,5 +12,6 @@
     <string name="fix_elf_dump">Auto Fix Dump</string>
     <string name="select_to_dump">Select to Dump</string>
     <string name="select_app">Select App</string>
+    <string name="single_mutiple">Single/Mutiple</string>
 
 </resources>

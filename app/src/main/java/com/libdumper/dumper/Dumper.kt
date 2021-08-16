@@ -13,7 +13,7 @@ import java.util.ArrayList
    An Modified Tools.kt from "https://github.com/BryanGIG/KMrite"
 */
 
-class Dumper(private val nativeDir: String, pkg: String, private val file: String="") {
+class Dumper(private val nativeDir: String, var pkg: String, private val file: String="") {
     private val mem = Memory(pkg)
     private var allmaplist = ArrayList<ProcessDetail>()
     fun dumpFile(autoFix: Boolean): String {
@@ -22,13 +22,14 @@ class Dumper(private val nativeDir: String, pkg: String, private val file: Strin
             getProcessID()
             log += "PID : ${mem.pid}\n"
             parseMap()
-
             mem.size = mem.eAddress - mem.sAddress
             log += "Start Address : ${mem.sAddress.longToHex()}\n"
             log += "End Address : ${mem.eAddress.longToHex()}\n"
             log += "Size Memory : ${mem.size}\n"
             if (mem.sAddress > 1L && mem.eAddress > 1L) {
-                val pathOut = File("/sdcard/Download/${mem.sAddress.longToHex()}-$file")
+                var path=File("/sdcard/Download/$pkg")
+                if(!path.exists())path.mkdirs()
+                val pathOut = File("${path.absolutePath}/${mem.sAddress.longToHex()}-$file")
                 RandomAccessFile("/proc/${mem.pid}/mem", "r").use { mems ->
                     mems.channel.use { filechannel ->
                         log += "Dumping...\n"

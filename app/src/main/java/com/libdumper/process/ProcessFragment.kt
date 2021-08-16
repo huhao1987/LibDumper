@@ -3,6 +3,7 @@ package com.libdumper.process
 import android.app.DialogFragment
 import android.os.Bundle
 import android.view.*
+import android.widget.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.libdumper.R
@@ -45,13 +46,42 @@ class ProcessFragment: DialogFragment() {
             processlistview?.layoutManager = llm
             var processAdapter= ProcessAdapter(activity,this).also {
                 it.setProcessListener(object: onProcessListener {
-                    override fun onSelect(process: ProcessDetail, position: Int) {
-                        onProcessListener?.onSelect(process,position)
+                    override fun onSelect(process: ProcessDetail) {
+                        onProcessListener?.onSelect(process)
                         this@ProcessFragment.dismiss()
                     }
                 })
+                var mutipledone=view?.findViewById<Button>(R.id.mutipledone)
+
+                it.setSelectedProcessListener(object:onSelectedProcessListener{
+                    override fun onSelect(selectedprocesslist: ArrayList<ProcessDetail>) {
+                        mutipledone?.setOnClickListener {
+                            if(selectedprocesslist.size>0)
+                            {
+                                selectedprocesslist.forEach {
+                                    onProcessListener?.onSelect(it)
+                                }
+                            }
+                            else Toast.makeText(activity,"Please choose one process at least", Toast.LENGTH_SHORT).show()
+                            this@ProcessFragment.dismiss()
+                        }
+
+                    }
+                })
+                var checkbtn=view?.findViewById<CheckBox>(R.id.checkbtn)
+                    checkbtn?.setOnCheckedChangeListener { buttonView, isChecked ->
+                        it.setAllprocessSelect(isChecked)
+                    }
             }
             processlistview?.adapter = processAdapter
+
+            var choosemode=view?.findViewById<Switch>(R.id.choosemode)
+            var choosearea=view?.findViewById<RelativeLayout>(R.id.choosearea)
+            choosemode?.setOnCheckedChangeListener { buttonView, isChecked ->
+               choosearea?.visibility= if(isChecked)View.INVISIBLE else View.VISIBLE
+                processAdapter.setSingleMutipleListener(isChecked)
+
+            }
         }
         getDialog().requestWindowFeature(Window.FEATURE_NO_TITLE)
 
@@ -73,6 +103,6 @@ class ProcessFragment: DialogFragment() {
     }
 }
 interface onProcessListener{
-    fun onSelect(process: ProcessDetail, position:Int)
+    fun onSelect(process: ProcessDetail)
 }
 

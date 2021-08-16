@@ -13,5 +13,6 @@ data class ProcessDetail (
     var processname: String?=null,
     var sAddress: Long = 0L,
     var eAddress: Long = 0L,
-    var size:Long = 0L
+    var size:Long = 0L,
+    var isselect:Boolean=false
 ) : Parcelable

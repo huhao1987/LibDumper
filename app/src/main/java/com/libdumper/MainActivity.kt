@@ -6,6 +6,7 @@ import android.content.Intent.ACTION_VIEW
 import android.net.Uri
 import android.os.*
 import android.util.Log
+import android.view.View
 import android.widget.ScrollView
 import com.libdumper.Utils.TAG
 import com.libdumper.app.AppDetail
@@ -34,6 +35,8 @@ class MainActivity : Activity(), Handler.Callback {
     private var needFix: Boolean = false
 
     private var processesBroadcastReceiver:BroadcastReceiver?=null
+    private var applistFragment:ApplistFragment?=null
+    private var processFragment:ProcessFragment?=null
     private fun initRoot() {
         if (Shell.rootAccess()) {
             if (remoteMessenger == null) {
@@ -85,8 +88,9 @@ class MainActivity : Activity(), Handler.Callback {
                 )
             }
             selectapp.setOnClickListener {
+                loading.visibility= View.VISIBLE
                 GlobalScope.launch {
-                    var applistFragment= ApplistFragment.newInstance(AppUtils.getActiveApps(this@MainActivity))
+                    applistFragment= ApplistFragment.newInstance(AppUtils.getActiveApps(this@MainActivity))
                         .also {
                             it.setProcessListener(object: onAppListener {
                                 override fun onSelect(process: AppDetail, position: Int) {
@@ -97,27 +101,37 @@ class MainActivity : Activity(), Handler.Callback {
 
                             })
                         }
-                    applistFragment.show(fragmentManager,"process")
+                    if(!applistFragment!!.isVisible)
+                    applistFragment?.show(fragmentManager,"process")
+                    runOnUiThread {
+                        loading.visibility= View.GONE
+                    }
                 }
             }
         }
+
         if(processesBroadcastReceiver==null) {
             processesBroadcastReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
                     when (intent?.action) {
                         "com.libdumper.getallprocess" -> {
-                            var processFragment= ProcessFragment.newInstance(intent.getParcelableArrayListExtra<ProcessDetail>("allprocesses")!!)
+                            processFragment= ProcessFragment.newInstance(intent.getParcelableArrayListExtra<ProcessDetail>("allprocesses")!!)
                                 .also {
                                     it.setProcessListener(object: onProcessListener {
-                                        override fun onSelect(process: ProcessDetail, position: Int) {
-                                            process.processname?.apply {
-                                                runNative(this)
+                                        override fun onSelect(process: ProcessDetail) {
+                                            process.processname?.let {
+                                                processname->
+                                                GlobalScope.launch {
+                                                    if(!processname.contains("deleted"))
+                                                        runNative(processname)
+                                                }
                                             }
                                         }
 
                                     })
                                 }
-                                processFragment.show(fragmentManager,"process")
+                                if(!processFragment!!.isVisible)
+                                processFragment?.show(fragmentManager,"process")
                         }
                     }
                 }
@@ -142,9 +156,13 @@ class MainActivity : Activity(), Handler.Callback {
             var processFragment= ProcessFragment.newInstance(intent.getParcelableArrayListExtra<ProcessDetail>("allprocesses")!!)
                 .also {
                     it.setProcessListener(object: onProcessListener {
-                        override fun onSelect(process: ProcessDetail, position: Int) {
-                            process.processname?.apply {
-                                runNative(this)
+                        override fun onSelect(process: ProcessDetail) {
+                            process.processname?.let {
+                                processname->
+                                GlobalScope.launch {
+                                    if(!processname.contains("deleted"))
+                                    runNative(processname)
+                                }
                             }
                         }
 

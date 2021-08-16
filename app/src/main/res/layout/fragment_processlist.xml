@@ -3,6 +3,58 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/switchtext"
+            android:layout_marginLeft="10dp"
+            android:text="@string/single_mutiple"
+            android:layout_centerVertical="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    <Switch
+        android:id="@+id/choosemode"
+        android:checked="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="10dp"
+        android:layout_toRightOf="@+id/switchtext"
+        android:textOn=""
+        android:textOff=""
+        android:thumb="@drawable/switch_thumb"
+        android:track="@drawable/switch_track_selector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+        <RelativeLayout
+            android:id="@+id/choosearea"
+            android:visibility="invisible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/choosetext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="5dp"
+            android:layout_toLeftOf="@+id/checkbtn"
+            android:text="Choose All" />
+        <CheckBox
+            android:id="@+id/checkbtn"
+            android:layout_marginRight="10dp"
+            android:layout_toLeftOf="@+id/mutipledone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/mutipledone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:text="Dump" />
+        </RelativeLayout>
+    </RelativeLayout>
 <androidx.recyclerview.widget.RecyclerView
     android:id="@+id/processlistview"
     android:layout_width="match_parent"

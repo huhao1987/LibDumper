@@ -37,7 +37,7 @@ class ApplistFragment: DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        var view=inflater?.inflate(R.layout.fragment_processlist,container)
+        var view=inflater?.inflate(R.layout.fragment_applist,container)
         appList?.apply {
             var processlistview= view?.findViewById<RecyclerView>(R.id.processlistview)
             var llm = LinearLayoutManager(activity)
