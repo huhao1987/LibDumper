@@ -82,13 +82,15 @@ class ProcessAdapter(var context: Context, var processlist: ArrayList<ProcessDet
         this.onSelectedProcessListener = onSelectedProcessListener
     }
 
-    fun setAllprocessSelect(isallselect: Boolean) {
+    fun setAllSoSelect(isallsoselect:Boolean){
         processlist.forEach {
-            it.isselect = isallselect
-            if (isallselect)
-                if (!selectedprocesslist.contains(it)) selectedprocesslist.add(it)
-                else
-                    if (selectedprocesslist.contains(it)) selectedprocesslist.remove(it)
+            if(it.processname!!.contains(".so")) {
+                it.isselect = isallsoselect
+                if (isallsoselect)
+                    if (!selectedprocesslist.contains(it)) selectedprocesslist.add(it)
+                    else
+                        if (selectedprocesslist.contains(it)) selectedprocesslist.remove(it)
+            }
         }
         onSelectedProcessListener?.onSelect(selectedprocesslist)
         notifyDataSetChanged()

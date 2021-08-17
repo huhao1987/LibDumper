@@ -68,10 +68,10 @@ class ProcessFragment: DialogFragment() {
 
                     }
                 })
-                var checkbtn=view?.findViewById<CheckBox>(R.id.checkbtn)
-                    checkbtn?.setOnCheckedChangeListener { buttonView, isChecked ->
-                        it.setAllprocessSelect(isChecked)
-                    }
+                var selectallso=view?.findViewById<CheckBox>(R.id.selectallso)
+                selectallso?.setOnCheckedChangeListener { buttonView, isChecked ->
+                    it.setAllSoSelect(isChecked)
+                }
             }
             processlistview?.adapter = processAdapter
 
